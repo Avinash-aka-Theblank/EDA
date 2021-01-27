@@ -1,0 +1,209 @@
+# This contains all the functions libraries and code for Exploratory Data Analysis #
+
+# Numpy Library
+import numpy as np
+
+# Pandas Library
+import pandas as pd
+
+# Matplot Library
+import matplotlib.pyplot as plt
+
+# Seaborn Library
+import seaborn as sns
+
+# Stats Library
+import scipy.stats as stats
+
+# Math library
+import math
+
+# Missingno Library
+import missingno as ms
+
+# Steps to be followed in EDA:
+
+1) First step is to always to understand the variables present in the data set.
+
+    * Which includes knowing the shape
+    
+    * going thorugh each columns
+    
+    * Finding the unwanted columns and the required columns for the analysis
+    
+    * Reclassify the columns where it needed (What it means to reclassify is that for example if we have a column where we have categoricial 
+    
+    variables such as 'Very Bad','Bad','Average','Good','Very good' so here having 'very bad and bad' is pointless and similar for 'Good and
+    Very good' so we go for something called Reclassifying the columns making it easier for analysis)
+
+2) Second step in to drop the null values, redundant values and Outliers.
+
+    I) So as we know we have so many ways to deal with the null values.
+    
+    a) If the percentage of null values is greater than 30 % (In general) but it can change accoring to the field and the problem statement.
+   
+    b) Then we drop the entire column.
+        
+        ## Program to find the percentage of null values in each column:
+            def missing_values(df):
+                missing_vals = df.isnull().sum()
+                missing_values_per = 100 * df.isnull().sum() / len(df)
+                missing_valu_table = pd.concat([missing_vals,missing_values_per], axis = 1)
+                miss_vals_table_renamed = missing_valu_table.rename(columns = {0: 'Missing Values' , 1 : 'Percentage of Missing'})
+                miss_vals_table_renamed = miss_vals_table_renamed[
+                miss_vals_table_renamed.iloc[:,1] != 0].sort_values('Percentage of Missing',ascending = False).round(2)
+                return miss_vals_table_renamed
+                
+     c) We have another alternative called Back-Fill and Front-Fill:
+         
+         # In Back-Fill the data would start getting filled from the bottom i.e from the last row to the top row.
+             
+            *****************************************************IMPORTANT POINT********************************************************
+            
+                   (But if the last row of that particular column is NaN then the values wont get fill till it finds the next integer)
+                        
+                       What I meant by that is for example [1,2,NaN,3,NaN,NaN] and if we apply bfill() then the output would
+                        be [1,2,3,3,NaN,NaN] because the last value is NaN till it finds the next value it would leave NaN
+                           as Nan only.
+         
+         # In Front-Fill the data would start getting filled from the top i.e from the first row to the last row.
+             
+            *****************************************************IMPORTANT POINT********************************************************
+            
+                   (But if the first row of that particular column is NaN then the values wont get fill till it finds the next interger)
+                        
+                       What I meant by that is for example [NaN,NaN,3,4,5,NaN] and if we apply ffill() then the output would
+                        be [NaN,NaN,3,4,5,5] because the first value is NaN till it finds the next value it would leave NaN
+                           as Nan only.
+                           
+                           
+                           Syntax: dataframe.fillna(method = 'ffill') and dataframe.fillna(method = 'bfill')
+                           
+             
+      d) We have another way of dealing with NaN or Null Values i.e Filling them with Mean Or Median we also call it as Imputing:
+          
+          # Impute with Mean or Median:
+              
+              So what do we mean by Imputing, It means that we fill the NaN or Null values with mean of the column or the Median.
+              
+                  Reason: Why do we do that?
+                  
+                  * First to remove the NaN and Null values.
+                  * Second after filling the NaN and Null values it should be close to the main data the distribution of the data should be
+                      close.
+                      
+                      ******************************************************Syntax*******************************************************
+                  
+                                          def impute(df,variable):
+                                                print('1.Mean\n2.Median')
+                                                a = int(input())
+                                                if a == 1:
+                                                    df[variable].fillna(df[variable].mean(),inplace =True)
+                                                elif a == 2:
+                                                    df[variable].fillna(df[variable].median(),inplace = True)
+                                                else:
+                                                    pass
+                                              return df[variable]
+
+    
+                                              
+       
+      II) Redundant Values:
+           Now what are redundant values, Redundant values are those values which are not useful to out analysis.
+           
+           So what do I mean by that lets just say we have a columns named 'City URL' and 'URL' so what we do is we drop these
+           columns because it doesn't make any sense to have these values for the analysis.
+           
+       
+       III) OUTLIERS:
+           
+           So the next step is to remove the outliers:
+               
+               So question yourself why do you remove the outliers?
+               
+                   It's because we know that we always try to standardize the data. That mean we always try to make the distribution
+                    normal.
+                    
+                   As we know having outliers would skew our data so what we do is remove the outliers which would make our 
+                   distribution more Normal.
+                   
+                Now that you know why you remove outliers the let's see how we do that:
+                
+                * There are many ways to remove outlier's lets look the easy one first ;)
+                
+                  For removing the outliers we get the help of a concept called IQR ( Inter Quartile Range )
+                  
+                      So using this concept we calculate Upper Limit and Lower Limit:
+                      
+                        *****Before I continue for understanding this topic a bit of statistics is needed*****
+                    
+                             So we calculate the Upper and Lower Limits using the formula:
+                     
+                                 ******************************Upper Limit****************************
+                                         upper_limit = ad['Area Income'].quantile(0.75)+ (iqr*1.5)
+                                         
+                                 ******************************Lower Limit*****************************
+                                         lower_limit = ad['Area Income'].quantile(0.25)- (iqr*1.5)
+                             
+                          Don't worry I will eaxplain what is this term Quantile and why I am multiplying it with 1.5.                        
+               So here we are finding the upper and lower limit and the term quantile means 75 % of the data and 25 % of the data
+                   
+                   which can be found out very easily using a very helpful command of pandas i.e .describe() using this method
+                   
+                       would give you a lot of values which would also include the 75 % and the 25 %.
+                   
+                           So after that we multiply IQR with 1.5 and to get IQR we do IQR = (q3 - q1) which would give you IQR
+                   
+                           here q3 = 75% and q1 = 25%. Then we multiply it with 1.5 so what is this 1.5?
+                   
+                           Well here is where we need to know the topic of statistics in stat's we have something called sigma values
+                   
+                           which is 1 sigma, 2 sigma and 3 sigma we here anything beyond 3 sigma is considered as outliers and we dont 
+                   
+                           consider them in the analysis.
+                   
+                           The 3 sigma is divided into two halves on a normally distributed graph which is 1.5 sigma left and 1.5 right 
+                   
+                           so thats the reason we multiply IQR with 1.5.
+                   
+                           I HOPE IT WAS CLEAR.
+                                
+               So now we found out the Upper and the Lower limit we can excluse those values from our data set in order to remove the 
+               
+               skewness from our dataset. For that we can use a function called .between()
+               
+               ***********************************Example: df['Income'].between(999.0,9999.0)*****************************************
+                   
+3) Third and the final step is to find the corelation between the Variable:
+
+    So how do we do that?
+    
+    We use the visizualization graphs and one such powerful graph which is widely used for finding the relation is Heat Map.
+    
+    *************************************************************Syntax******************************************************************
+                                              
+                           sns.heatmap(df) df - Data Frame but before passing df make sure you take the corelation matrix or 
+                           
+                           else you will get dimensionality error.
+                           
+     You might be thinking why we are doing that heat map correlation and all that shit. 
+     
+     It's simply its to find the realtion between each variable present in the dataset to give you an better understanding.
+     
+     
+     
+     
+     
+             DON'T THINK IT'S DONE THESE ARE THE BASIC STEPS THAT WE DO ON ANY GIVEN DATA SET AFTER THERE ARE FEW MORE STEPS !!!!!
+                   
+     ************************************************************ENJOY!!!!***************************************************************
+                            
+                      
+               
+       
+     
+           
+              
+   
+   
+   
